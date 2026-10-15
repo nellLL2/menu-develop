@@ -1,4 +1,5 @@
 import random
+import string
 
 current_text = None
 sorted_words = None
@@ -23,11 +24,14 @@ def is_processed():
 
 
 def split_text(text):
-    pass
+    punctuation = string.punctuation + "«»—–…"
+    for ch in punctuation:
+        text = text.replace(ch, " ")
+    return text.split()
 
 
 def sort_by_length(words):
-    pass
+     return sorted(words, key=len)
 
 
 def input_manual():
@@ -83,10 +87,18 @@ def menu_input():
 
 
 def process_text():
+    global sorted_words, is_result_ready
     if not is_data_entered():
         print("Сначала введите данные (пункт 1).")
         return
-    print("Алгоритм ещё не реализован.")
+    words = split_text(current_text)
+    if not words:
+        print("В тексте не найдено слов.")
+        sorted_words = []
+    else:
+        sorted_words = sort_by_length(words)
+    is_result_ready = True
+    print(f"Алгоритм выполнен. Найдено слов: {len(words)}.")
 
 
 def show_result():
