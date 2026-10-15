@@ -1,5 +1,27 @@
 import random
 import string
+import logging
+
+
+LOG_LEVEL = logging.INFO
+
+
+def _make_logger(name, filename):
+    """Создаёт логгер с записью в файл."""
+    logger = logging.getLogger(name)
+    logger.setLevel(LOG_LEVEL)
+    handler = logging.FileHandler(filename, encoding="utf-8")
+    handler.setFormatter(logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    ))
+    logger.addHandler(handler)
+    return logger
+
+
+user_logger = _make_logger("user", "user_actions.log")
+server_logger = _make_logger("server", "server_actions.log")
+
 
 current_text = None
 sorted_words = None
@@ -9,6 +31,7 @@ is_result_ready = False
 
 def reset_results():
     """Сбрасывает результаты при вводе новых данных."""
+    server_logger.info("Вызов: reset_results()")
     global sorted_words, is_data_ready, is_result_ready
     sorted_words = None
     is_data_ready = False
@@ -18,16 +41,19 @@ def reset_results():
 
 def is_data_entered():
     """Проверяет, введены ли исходные данные."""
+    server_logger.info("Вызов: is_data_entered()")
     return is_data_ready
 
 
 def is_processed():
     """Проверяет, выполнен ли алгоритм."""
+    server_logger.info("Вызов: is_processed()")
     return is_result_ready
 
 
 def split_text(text):
     """Разбивает текст на слова по пробелам и знакам препинания."""
+    server_logger.info("Вызов: split_text()")
     punctuation = string.punctuation + "«»—–…"
     for ch in punctuation:
         text = text.replace(ch, " ")
@@ -36,11 +62,13 @@ def split_text(text):
 
 def sort_by_length(words):
     """Сортирует слова по возрастанию длины."""
+    server_logger.info("Вызов: sort_by_length()")
     return sorted(words, key=len)
 
 
 def input_manual():
     """Ручной ввод текста."""
+    server_logger.info("Вызов: input_manual()")
     global current_text, is_data_ready
     print("\n--- Ручной ввод текста ---")
     text = input("Введите текст: ").strip()
@@ -55,6 +83,7 @@ def input_manual():
 
 def input_random():
     """Генерация случайного текста."""
+    server_logger.info("Вызов: input_random()")
     global current_text, is_data_ready
     print("\n--- Генерация случайного текста ---")
     word_pool = ["кот", "собака", "я", "привет", "мир", "код",
@@ -77,12 +106,14 @@ def input_random():
 
 def menu_input():
     """Подменю ввода исходных данных."""
+    server_logger.info("Вызов: menu_input()")
     while True:
         print("\n===== ВВОД ДАННЫХ =====")
         print("1) Ввести текст вручную")
         print("2) Сгенерировать случайный текст")
         print("0) Вернуться в главное меню")
         choice = input("Ваш выбор: ").strip()
+        user_logger.info(f"Подменю ввода — выбран пункт: {choice}")
 
         if choice == "1":
             input_manual()
@@ -96,6 +127,7 @@ def menu_input():
 
 def process_text():
     """Выполняет алгоритм по заданию."""
+    server_logger.info("Вызов: process_text()")
     global sorted_words, is_result_ready
     if not is_data_entered():
         print("Сначала введите данные (пункт 1).")
@@ -112,11 +144,15 @@ def process_text():
 
 def show_result():
     """Выводит результат работы алгоритма."""
+    server_logger.info("Вызов: show_result()")
     if not is_processed():
         print("Сначала выполните алгоритм (пункт 2).")
         return
     if sorted_words is None:
-        print("Результат отсутствует (алгоритм не реализован).")
+        print("Результат отсутствует.")
+        return
+    if len(sorted_words) == 0:
+        print("Массив слов пуст.")
         return
     print("\n========== РЕЗУЛЬТАТ ==========")
     for i, word in enumerate(sorted_words, 1):
@@ -126,6 +162,7 @@ def show_result():
 
 def menu_main():
     """Главное меню приложения."""
+    server_logger.info("Вызов: menu_main()")
     while True:
         print("\n===== СОРТИРОВКА СЛОВ ПО ДЛИНЕ (вариант 12) =====")
         print("1) Ввод исходных данных")
@@ -133,6 +170,7 @@ def menu_main():
         print("3) Вывести результат")
         print("0) Завершить работу")
         choice = input("Ваш выбор: ").strip()
+        user_logger.info(f"Главное меню — выбран пункт: {choice}")
 
         if choice == "1":
             menu_input()
