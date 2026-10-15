@@ -8,6 +8,7 @@ is_result_ready = False
 
 
 def reset_results():
+    """Сбрасывает результаты при вводе новых данных."""
     global sorted_words, is_data_ready, is_result_ready
     sorted_words = None
     is_data_ready = False
@@ -16,14 +17,17 @@ def reset_results():
 
 
 def is_data_entered():
+    """Проверяет, введены ли исходные данные."""
     return is_data_ready
 
 
 def is_processed():
+    """Проверяет, выполнен ли алгоритм."""
     return is_result_ready
 
 
 def split_text(text):
+    """Разбивает текст на слова по пробелам и знакам препинания."""
     punctuation = string.punctuation + "«»—–…"
     for ch in punctuation:
         text = text.replace(ch, " ")
@@ -31,10 +35,12 @@ def split_text(text):
 
 
 def sort_by_length(words):
-     return sorted(words, key=len)
+    """Сортирует слова по возрастанию длины."""
+    return sorted(words, key=len)
 
 
 def input_manual():
+    """Ручной ввод текста."""
     global current_text, is_data_ready
     print("\n--- Ручной ввод текста ---")
     text = input("Введите текст: ").strip()
@@ -48,6 +54,7 @@ def input_manual():
 
 
 def input_random():
+    """Генерация случайного текста."""
     global current_text, is_data_ready
     print("\n--- Генерация случайного текста ---")
     word_pool = ["кот", "собака", "я", "привет", "мир", "код",
@@ -69,6 +76,7 @@ def input_random():
 
 
 def menu_input():
+    """Подменю ввода исходных данных."""
     while True:
         print("\n===== ВВОД ДАННЫХ =====")
         print("1) Ввести текст вручную")
@@ -87,6 +95,7 @@ def menu_input():
 
 
 def process_text():
+    """Выполняет алгоритм по заданию."""
     global sorted_words, is_result_ready
     if not is_data_entered():
         print("Сначала введите данные (пункт 1).")
@@ -102,6 +111,7 @@ def process_text():
 
 
 def show_result():
+    """Выводит результат работы алгоритма."""
     if not is_processed():
         print("Сначала выполните алгоритм (пункт 2).")
         return
@@ -115,6 +125,7 @@ def show_result():
 
 
 def menu_main():
+    """Главное меню приложения."""
     while True:
         print("\n===== СОРТИРОВКА СЛОВ ПО ДЛИНЕ (вариант 12) =====")
         print("1) Ввод исходных данных")
