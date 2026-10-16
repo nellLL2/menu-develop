@@ -6,10 +6,10 @@ import logging
 LOG_LEVEL = logging.INFO
 
 
-def _make_logger(name, filename):
+def _make_logger(name, filename, level=None):
     """Создаёт логгер с записью в файл."""
     logger = logging.getLogger(name)
-    logger.setLevel(LOG_LEVEL)
+    logger.setLevel(level if level is not None else LOG_LEVEL)
     handler = logging.FileHandler(filename, encoding="utf-8")
     handler.setFormatter(logging.Formatter(
         "%(asctime)s [%(levelname)s] %(message)s",
@@ -21,6 +21,7 @@ def _make_logger(name, filename):
 
 user_logger = _make_logger("user", "user_actions.log")
 server_logger = _make_logger("server", "server_actions.log")
+error_logger = _make_logger("error", "errors.log", level=logging.ERROR)
 
 
 current_text = None
@@ -54,6 +55,8 @@ def is_processed():
 def split_text(text):
     """Разбивает текст на слова по пробелам и знакам препинания."""
     server_logger.info("Вызов: split_text()")
+    if text is None or not text.strip():
+        raise ValueError("Текст пуст или отсутствует.")
     punctuation = string.punctuation + "«»—–…"
     for ch in punctuation:
         text = text.replace(ch, " ")
@@ -73,8 +76,7 @@ def input_manual():
     print("\n--- Ручной ввод текста ---")
     text = input("Введите текст: ").strip()
     if not text:
-        print("Текст не может быть пустым.")
-        return
+        raise ValueError("Пользователь ввёл пустую строку.")
     current_text = text
     reset_results()
     is_data_ready = True
@@ -116,7 +118,11 @@ def menu_input():
         user_logger.info(f"Подменю ввода — выбран пункт: {choice}")
 
         if choice == "1":
-            input_manual()
+            try:
+                input_manual()
+            except ValueError as e:
+                error_logger.error(f"input_manual: {e}")
+                print(f"Ошибка: {e}")
         elif choice == "2":
             input_random()
         elif choice == "0":
@@ -130,8 +136,7 @@ def process_text():
     server_logger.info("Вызов: process_text()")
     global sorted_words, is_result_ready
     if not is_data_entered():
-        print("Сначала введите данные (пункт 1).")
-        return
+        raise RuntimeError("Данные не введены.")
     words = split_text(current_text)
     if not words:
         print("В тексте не найдено слов.")
@@ -146,11 +151,9 @@ def show_result():
     """Выводит результат работы алгоритма."""
     server_logger.info("Вызов: show_result()")
     if not is_processed():
-        print("Сначала выполните алгоритм (пункт 2).")
-        return
+        raise RuntimeError("Алгоритм ещё не выполнен.")
     if sorted_words is None:
-        print("Результат отсутствует.")
-        return
+        raise RuntimeError("Результат отсутствует.")
     if len(sorted_words) == 0:
         print("Массив слов пуст.")
         return
@@ -175,14 +178,23 @@ def menu_main():
         if choice == "1":
             menu_input()
         elif choice == "2":
-            process_text()
+            try:
+                process_text()
+            except (RuntimeError, ValueError) as e:
+                error_logger.error(f"process_text: {e}")
+                print(f"Ошибка: {e}")
         elif choice == "3":
-            show_result()
+            try:
+                show_result()
+            except RuntimeError as e:
+                error_logger.error(f"show_result: {e}")
+                print(f"Ошибка: {e}")
         elif choice == "0":
             print("Завершение работы...")
             break
         else:
-            print("Некорректный пункт.")
+            error_logger.error(f"menu_main: некорректный пункт: {choice}")
+            print(f"Некорректный пункт: {choice}")
 
 
 if __name__ == "__main__":
